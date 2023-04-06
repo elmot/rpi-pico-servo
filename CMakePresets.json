@@ -1,0 +1,18 @@
+{
+  "cmakeMinimumRequired": {
+    "major": 3,
+    "minor": 23
+  },
+  "version": 3,
+  "configurePresets": [
+    {
+      "name": "Debug",
+      "generator": "Ninja",
+      "cacheVariables": {
+        "CMAKE_OBJECT_PATH_MAX": "512",
+        "PICO_SDK_PATH":"C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/pico-sdk",
+        "PICO_TOOLCHAIN_PATH": "C:/Program Files/Raspberry Pi/Pico SDK v1.5.0/gcc-arm-none-eabi"
+      }
+    }
+  ]
+}
