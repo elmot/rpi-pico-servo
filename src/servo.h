@@ -11,6 +11,7 @@
 #include "hardware/i2c.h"
 #include "hardware/structs/clocks.h"
 #include "hardware/clocks.h"
+#include "hardware/timer.h"
 
 #define PWM_IN_PIN (21)
 
@@ -21,6 +22,8 @@
 #define LED_PIN (25)
 #define MOTOR_A_PIN (16)
 #define MOTOR_B_PIN (17)
+
+#define DEFAULT_PWM (1500)
 
 extern volatile uint16_t pwm_count;
 

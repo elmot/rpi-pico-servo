@@ -1,20 +1,33 @@
 #include "servo.h"
 
-volatile uint pwm_in_slice_num;
 volatile uint16_t pwm_count;
 
-uint motor_pwm_slice_num;
-uint motor_a_channel;
-uint motor_b_channel;
+static volatile uint pwm_in_slice_num;
+static volatile bool pwm_in_check_lost = true;
+static repeating_timer_t timer;
+
+static uint motor_pwm_slice_num;
+static uint motor_a_channel;
+static uint motor_b_channel;
+
 
 void pwm_fall_handler() {
     pwm_count = pwm_get_counter(pwm_in_slice_num);
     pwm_set_counter(pwm_in_slice_num, 0);
+    pwm_in_check_lost = false;
 }
 
 void pwm_irq_handler() {
     pwm_clear_irq(pwm_in_slice_num);
-    pwm_count = 0;
+    pwm_count = DEFAULT_PWM;
+}
+
+bool check_pwm_callback(__unused struct repeating_timer * param) {
+    if(pwm_in_check_lost) {
+        pwm_count = DEFAULT_PWM;
+    }
+    pwm_in_check_lost = true;
+    return true;// keep repeating
 }
 
 static inline void init_pwm_out() {
@@ -56,6 +69,9 @@ static inline void init_pwm_in() {
     irq_set_enabled(PWM_IRQ_WRAP, true);
     gpio_set_irq_enabled_with_callback(PWM_IN_PIN, GPIO_IRQ_EDGE_FALL, true, pwm_fall_handler);
     pwm_set_enabled(pwm_in_slice_num, true);
+
+    add_repeating_timer_us(60000, check_pwm_callback, NULL, &timer);
+
 }
 
 void init_pwm() {
