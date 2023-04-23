@@ -13,7 +13,7 @@ set(PICO_BOARD pico)
 
 pico_sdk_init()
 
-add_executable(rpi-pico-servo src/servo.c src/pwm.c)
+add_executable(rpi-pico-servo src/servo.c src/pwm.c src/as560x.c)
 pico_set_program_name(rpi-pico-servo "rpi-pico-servo")
 pico_set_program_version(rpi-pico-servo "0.1")
 pico_add_extra_outputs(rpi-pico-servo)

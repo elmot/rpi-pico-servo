@@ -1,4 +1,6 @@
 #include "servo.h"
+#include "hardware/timer.h"
+#include "hardware/pwm.h"
 
 volatile uint16_t pwm_count;
 

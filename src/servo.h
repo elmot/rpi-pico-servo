@@ -1,17 +1,13 @@
 #ifndef RPI_PICO_SERVO_SERVO_H
 #define RPI_PICO_SERVO_SERVO_H
-#include <machine/endian.h>
 #include <pico/assert.h>
 #include <pico/printf.h>
 #include <hardware/watchdog.h>
 #include <stdlib.h>
 #include "pico/stdlib.h"
 #include "pico/binary_info.h"
-#include "hardware/pwm.h"
-#include "hardware/i2c.h"
 #include "hardware/structs/clocks.h"
 #include "hardware/clocks.h"
-#include "hardware/timer.h"
 
 #define PWM_IN_PIN (21)
 
