@@ -13,7 +13,7 @@ set(PICO_BOARD pico)
 
 pico_sdk_init()
 
-add_executable(rpi-pico-servo src/servo.c)
+add_executable(rpi-pico-servo src/servo.c src/pwm.c)
 pico_set_program_name(rpi-pico-servo "rpi-pico-servo")
 pico_set_program_version(rpi-pico-servo "0.1")
 pico_add_extra_outputs(rpi-pico-servo)
@@ -22,7 +22,8 @@ target_link_options(rpi-pico-servo PRIVATE -g3 -O0)
 
 #pico_generate_pio_header(rp2040-data-logger ${CMAKE_SOURCE_DIR}/src/ws2812.pio OUTPUT_DIR ${CMAKE_SOURCE_DIR}/src/generated)
 
-pico_enable_stdio_usb(rpi-pico-servo 1)
+pico_enable_stdio_usb(rpi-pico-servo 0)
+pico_enable_stdio_uart(rpi-pico-servo 1)
 
 target_link_libraries(rpi-pico-servo
         pico_stdlib
@@ -32,6 +33,7 @@ target_link_libraries(rpi-pico-servo
         hardware_timer
         hardware_watchdog
         hardware_clocks
+        hardware_uart
         )
 
 target_include_directories(rpi-pico-servo PRIVATE ${CMAKE_SOURCE_DIR}/src)

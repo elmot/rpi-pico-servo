@@ -1,23 +1,6 @@
-#include <machine/endian.h>
-#include <pico/assert.h>
-#include <pico/printf.h>
-#include <hardware/watchdog.h>
-#include <stdlib.h>
-#include "pico/stdlib.h"
-#include "pico/binary_info.h"
-#include "hardware/pwm.h"
-#include "hardware/i2c.h"
-#include "hardware/structs/clocks.h"
-#include "hardware/clocks.h"
+#include "servo.h"
 
-#define I2C i2c1
-#define I2C_SDA_PIN (26)
-#define I2C_SCL_PIN (27)
 #define I2C_TIMEOUT_US (100000)
-
-#define LED_PIN (25)
-#define MOTOR_A_PIN (16)
-#define MOTOR_B_PIN (17)
 
 #define AS5601_ADDR 0x36
 #define AS5601_STATUS_REG (0x0B)
@@ -45,12 +28,6 @@ uint16_t as5601ReadReg(int addr, bool wide, uint16_t mask);
  */
 __unused void sensorLoop();
 
-uint motor_pwm_slice_num;
-uint motor_a_channel;
-uint motor_b_channel;
-
-void init_pwm(void);
-
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
 int target_angle = 270;//todo
@@ -69,6 +46,9 @@ int main() {
 
     bi_decl(bi_2pins_with_func(I2C_SDA_PIN, I2C_SCL_PIN, GPIO_FUNC_I2C))
 
+    while(1) {
+        printf("PWM_IN: %d\n\r", pwm_count);
+    }
     while (1) {
         uint8_t status = (uint8_t) as5601ReadReg(AS5601_STATUS_REG, false, 0x38);
         if (!(status & AS5601_STATUS_MAGNET_DETECTED)) {
@@ -80,7 +60,7 @@ int main() {
         int angle_delta = (360 + target_angle - angle) % 360;
         if (angle_delta > 180) { angle_delta = angle_delta - 360; }
         int angle_delta_abs = abs(angle_delta);
-        int pwm_a = 0, pwm_b = 0;
+        unsigned int pwm_a = 0, pwm_b = 0;
         if (angle_delta_abs > ANGLE_TOLERANCE) {
             gpio_put(LED_PIN, 1);
             int pwm = angle_delta_abs > SLOW_ANGLE ? FAST_PWM : SLOW_PWM;
@@ -92,34 +72,8 @@ int main() {
         } else {
             gpio_put(LED_PIN, 0);
         }
-        pwm_set_chan_level(motor_pwm_slice_num, motor_a_channel, pwm_a);
-        pwm_set_chan_level(motor_pwm_slice_num, motor_b_channel, pwm_b);
-//        printf("Target: %3d; Actual: %3d; PWMA: %2d%% PWMB: %2d%%;\r", target_angle, angle, pwm_a, pwm_b);
+        setMotorPwm(pwm_a, pwm_b);
     }
-}
-
-void init_pwm() {
-    // Find out which PWM slice is connected to MOTOR_GPIO_A
-    gpio_set_function(MOTOR_A_PIN, GPIO_FUNC_PWM);
-    gpio_set_function(MOTOR_B_PIN, GPIO_FUNC_PWM);
-    motor_pwm_slice_num = pwm_gpio_to_slice_num(MOTOR_A_PIN);
-    uint slice_num_b = pwm_gpio_to_slice_num(MOTOR_A_PIN);
-    hard_assert(motor_pwm_slice_num == slice_num_b, "Motor GPIOs have to use same PWM channels");
-
-    motor_a_channel = pwm_gpio_to_channel(MOTOR_A_PIN);
-    motor_b_channel = pwm_gpio_to_channel(MOTOR_B_PIN);
-
-
-    double f_sys_khz = frequency_count_khz(CLOCKS_FC0_SRC_VALUE_CLK_SYS);
-    // Set PWM base freq 2 MHz, PWM freq 20 kHz,
-    pwm_set_clkdiv(motor_pwm_slice_num, (float) (f_sys_khz / 2000.0));
-    pwm_set_wrap(motor_pwm_slice_num, 100);
-
-    // Set the PWM running
-    pwm_set_enabled(motor_pwm_slice_num, true);
-    pwm_set_chan_level(motor_pwm_slice_num, motor_a_channel, 0);
-    pwm_set_chan_level(motor_pwm_slice_num, motor_b_channel, 0);
-
 }
 
 uint16_t as5601ReadReg(int addr, bool wide, uint16_t mask) {
