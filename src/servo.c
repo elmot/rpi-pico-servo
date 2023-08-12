@@ -28,9 +28,9 @@ int main() {
             magnetError();
         }
         if(pwm_count == 0) continue;
-        else if(pwm_count < 1000) pwm_count = 1000;
-        else if(pwm_count > 2000) pwm_count = 2000;
-        int target_angle = ZERO_RESTRICTED_ANGLE + ((pwm_count - 1000) * (360 - 2 * ZERO_RESTRICTED_ANGLE)) / 1000;
+        else if(pwm_count < 1300) pwm_count = 1300;
+        else if(pwm_count > 1700) pwm_count = 1700;
+        int target_angle = ZERO_RESTRICTED_ANGLE + ((pwm_count - 1300) * (360 - 2 * ZERO_RESTRICTED_ANGLE)) / 400;
         //todo check getting stuck
         int angle = as560xReadAngle() * 360L / AS5601_ANGLE_MAX;
 
