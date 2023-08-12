@@ -5,6 +5,9 @@
 #ifndef RPI_PICO_SERVO_PARAMS_H
 #define RPI_PICO_SERVO_PARAMS_H
 //degrees
+// Dead angle around zero position
+#define ZERO_RESTRICTED_ANGLE  (5)
+
 //Stop moving when the axle angle is less or equal than:
 #define ANGLE_TOLERANCE  (2)
 //Start moving when the axle angle is more than:

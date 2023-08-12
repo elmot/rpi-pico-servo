@@ -30,7 +30,7 @@ int main() {
         if(pwm_count == 0) continue;
         else if(pwm_count < 1000) pwm_count = 1000;
         else if(pwm_count > 2000) pwm_count = 2000;
-        int target_angle = 3 + ((pwm_count - 1000) * 354) / 1000;
+        int target_angle = ZERO_RESTRICTED_ANGLE + ((pwm_count - 1000) * (360 - 2 * ZERO_RESTRICTED_ANGLE)) / 1000;
         //todo check getting stuck
         int angle = as560xReadAngle() * 360L / AS5601_ANGLE_MAX;
 
@@ -50,7 +50,7 @@ int main() {
             gpio_put(LED_PIN, 0);
             setMotorPwm(NO_PWM, NO_PWM);
             moving = false;
-            printf("Target angle: %d; Current angle: %d\n\r",target_angle,angle);
+//            printf("Target angle: %d; Current angle: %d\n\r",target_angle,angle);
         }
     }
 }
