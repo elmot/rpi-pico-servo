@@ -20,4 +20,11 @@
 #define SLOW_PWM  (70)
 #define FAST_PWM  (0)
 
+// Test settings for prototype device
+//#define SLOW_PWM  (75)
+//#define FAST_PWM  (60)
+
+//Slow start milliseconds
+#define SLOW_START_MS (200)
+
 #endif //RPI_PICO_SERVO_PARAMS_H
