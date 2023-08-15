@@ -8,7 +8,8 @@ _Noreturn void magnetError();
 #pragma ide diagnostic ignored "EndlessLoop"
 
 volatile bool slow_start = true;
-int64_t slow_start_alarm_handler(__unused alarm_id_t id,__unused void *user_data) {
+
+int64_t slow_start_alarm_handler(__unused alarm_id_t id, __unused void *user_data) {
     slow_start = false;
     return 0;
 }
@@ -35,9 +36,9 @@ int main() {
             printf("ERROR\n\r");
             magnetError();
         }
-        if(pwm_count == 0) continue;
-        else if(pwm_count < 1300) pwm_count = 1300;
-        else if(pwm_count > 1700) pwm_count = 1700;
+        if (pwm_count == 0) continue;
+        else if (pwm_count < 1300) pwm_count = 1300;
+        else if (pwm_count > 1700) pwm_count = 1700;
         int target_angle = ZERO_RESTRICTED_ANGLE + ((pwm_count - 1300) * (360 - 2 * ZERO_RESTRICTED_ANGLE)) / 400;
         //todo check getting stuck
         int angle = as560xReadAngle() * 360L / AS5601_ANGLE_MAX;
@@ -47,20 +48,27 @@ int main() {
         int angle_tolerance = moving ? ANGLE_TOLERANCE : DEAD_ANGLE;
         if (angle_delta_abs > angle_tolerance) {
             gpio_put(LED_PIN, 1);
-            if(!moving) {
+            if (!moving) {
                 slow_start = true;
-                slow_start_alarm = add_alarm_in_ms(SLOW_START_MS, slow_start_alarm_handler,NULL,true);
+                slow_start_alarm = add_alarm_in_ms(SLOW_START_MS, slow_start_alarm_handler, NULL, true);
             }
             moving = true;
-            int pwm = (slow_start || (angle_delta_abs < SLOW_ANGLE)) ? SLOW_PWM : FAST_PWM;
-            if (angle_delta > 0) {
-                setMotorPwm(pwm, NO_PWM);
+            int pwm;
+            if(slow_start) {
+                pwm = 100 - SLOW_START_PWM;
+            } else if(angle_delta_abs < SLOW_ANGLE) {
+                pwm = 100 - SLOW_PWM;
             } else {
-                setMotorPwm(NO_PWM, pwm);
+                pwm = 100 - FAST_PWM;
+            }
+            if (angle_delta > 0) {
+                setMotorPwm(pwm, 100);
+            } else {
+                setMotorPwm(100, pwm);
             }
         } else {
             gpio_put(LED_PIN, 0);
-            setMotorPwm(NO_PWM, NO_PWM);
+            setMotorPwm(100, 100);
             moving = false;
             cancel_alarm(slow_start_alarm);
 //            printf("Target angle: %d; Current angle: %d\n\r",target_angle,angle);
