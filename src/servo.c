@@ -14,7 +14,14 @@ int64_t slow_start_alarm_handler(__unused alarm_id_t id, __unused void *user_dat
     return 0;
 }
 
+int previous_angle_delta = 0;
 bool moving = true;
+
+static int sgn(int v) {
+    if (v == 0) return 0;
+    if (v > 0) return 1;
+    return -1;
+}
 
 int main() {
     stdio_init_all();
@@ -44,6 +51,11 @@ int main() {
         int angle = as560xReadAngle() * 360L / AS5601_ANGLE_MAX;
 
         int angle_delta = target_angle - angle;
+        if (previous_angle_delta == 0 || (sgn(angle_delta) != sgn(previous_angle_delta))) {
+            slow_start = true;
+            slow_start_alarm = add_alarm_in_ms(SLOW_START_MS, slow_start_alarm_handler, NULL, true);
+        }
+        previous_angle_delta = angle_delta;
         int angle_delta_abs = abs(angle_delta);
         int angle_tolerance = moving ? ANGLE_TOLERANCE : DEAD_ANGLE;
         if (angle_delta_abs > angle_tolerance) {
@@ -54,9 +66,9 @@ int main() {
             }
             moving = true;
             int pwm;
-            if(slow_start) {
+            if (slow_start) {
                 pwm = 100 - SLOW_START_PWM;
-            } else if(angle_delta_abs < SLOW_ANGLE) {
+            } else if (angle_delta_abs < SLOW_ANGLE) {
                 pwm = 100 - SLOW_PWM;
             } else {
                 pwm = 100 - FAST_PWM;
@@ -69,9 +81,9 @@ int main() {
         } else {
             gpio_put(LED_PIN, 0);
             setMotorPwm(100, 100);
+            previous_angle_delta = 0;
             moving = false;
             cancel_alarm(slow_start_alarm);
-//            printf("Target angle: %d; Current angle: %d\n\r",target_angle,angle);
         }
     }
 }
