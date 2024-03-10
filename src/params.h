@@ -15,10 +15,11 @@
 //Slow down the motor when actual angle is close to the target
 #define SLOW_ANGLE  (20)
 
-//Inverted values, i.e. 100 => no power, 80 => 20% power
-#define NO_PWM  (100)
-#define SLOW_PWM  (70)
-#define FAST_PWM  (0)
+//PWM percents: 100 => max power
+#define NO_PWM  (30)
+#define SLOW_START_PWM  (30)
+#define SLOW_PWM  (10)
+#define FAST_PWM  (100)
 
 // Test settings for prototype device
 //#define SLOW_PWM  (75)
