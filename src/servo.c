@@ -7,22 +7,6 @@ _Noreturn void magnetError();
 #pragma clang diagnostic push
 #pragma ide diagnostic ignored "EndlessLoop"
 
-volatile bool slow_start = true;
-
-int64_t slow_start_alarm_handler(__unused alarm_id_t id, __unused void *user_data) {
-    slow_start = false;
-    return 0;
-}
-
-int previous_angle_delta = 0;
-bool moving = true;
-
-static int sgn(int v) {
-    if (v == 0) return 0;
-    if (v > 0) return 1;
-    return -1;
-}
-
 int main() {
     stdio_init_all();
     gpio_init(LED_PIN);
@@ -36,7 +20,7 @@ int main() {
     gpio_pull_up(I2C_SCL_PIN);
 
     bi_decl(bi_2pins_with_func(I2C_SDA_PIN, I2C_SCL_PIN, GPIO_FUNC_I2C))
-    alarm_id_t slow_start_alarm = 0;
+    bool moving = true;
     while (1) {
         uint8_t status = (uint8_t) as560xGetStatus();
         if (!(status & AS560x_STATUS_MAGNET_DETECTED)) {
@@ -44,46 +28,29 @@ int main() {
             magnetError();
         }
         if (pwm_count == 0) continue;
-        else if (pwm_count < 1000) pwm_count = 1000;
-        else if (pwm_count > 2000) pwm_count = 2000;
-        int target_angle = ZERO_RESTRICTED_ANGLE + ((pwm_count - 1000) * (360 - 2 * ZERO_RESTRICTED_ANGLE)) / 1000;
+        else if (pwm_count < 1300) pwm_count = 1300;
+        else if (pwm_count > 1700) pwm_count = 1700;
+        int target_angle = ZERO_RESTRICTED_ANGLE + ((pwm_count - 1300) * (360 - 2 * ZERO_RESTRICTED_ANGLE)) / 400;
         //todo check getting stuck
         int angle = as560xReadAngle() * 360L / AS5601_ANGLE_MAX;
 
         int angle_delta = target_angle - angle;
-        if (previous_angle_delta == 0 || (sgn(angle_delta) != sgn(previous_angle_delta))) {
-            slow_start = true;
-            slow_start_alarm = add_alarm_in_ms(SLOW_START_MS, slow_start_alarm_handler, NULL, true);
-        }
-        previous_angle_delta = angle_delta;
         int angle_delta_abs = abs(angle_delta);
         int angle_tolerance = moving ? ANGLE_TOLERANCE : DEAD_ANGLE;
         if (angle_delta_abs > angle_tolerance) {
             gpio_put(LED_PIN, 1);
-            if (!moving) {
-                slow_start = true;
-                slow_start_alarm = add_alarm_in_ms(SLOW_START_MS, slow_start_alarm_handler, NULL, true);
-            }
             moving = true;
-            int pwm;
-            if (slow_start) {
-                pwm = 100 - SLOW_START_PWM;
-            } else if (angle_delta_abs < SLOW_ANGLE) {
-                pwm = 100 - SLOW_PWM;
-            } else {
-                pwm = 100 - FAST_PWM;
-            }
+            int pwm = (angle_delta_abs > SLOW_ANGLE) ? FAST_PWM : SLOW_PWM;
             if (angle_delta > 0) {
-                setMotorPwm(pwm, 100);
+                setMotorPwm(pwm, NO_PWM);
             } else {
-                setMotorPwm(100, pwm);
+                setMotorPwm(NO_PWM, pwm);
             }
         } else {
             gpio_put(LED_PIN, 0);
-            setMotorPwm(100, 100);
-            previous_angle_delta = 0;
+            setMotorPwm(NO_PWM, NO_PWM);
             moving = false;
-            cancel_alarm(slow_start_alarm);
+//            printf("Target angle: %d; Current angle: %d\n\r",target_angle,angle);
         }
     }
 }
