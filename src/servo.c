@@ -28,8 +28,8 @@ int main() {
             magnetError();
         }
         if (pwm_count == 0) continue;
-#define PWM_LOW_LIMIT (1300)
-#define PWM_HIGH_LIMIT (1700)
+#define PWM_LOW_LIMIT (1400)
+#define PWM_HIGH_LIMIT (1600)
         if (pwm_count < PWM_LOW_LIMIT) pwm_count = PWM_LOW_LIMIT;
         else if (pwm_count > PWM_LOW_LIMIT) pwm_count = PWM_LOW_LIMIT;
         int target_angle = ZERO_RESTRICTED_ANGLE + ((pwm_count - PWM_LOW_LIMIT) * (360 - 2 * ZERO_RESTRICTED_ANGLE)) / (PWM_HIGH_LIMIT - PWM_LOW_LIMIT);
