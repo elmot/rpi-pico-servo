@@ -1,0 +1,14 @@
+<component name="DebugServers">
+  <generic-debug-target name="rpi-pico-servo" uniqueID="5d842b45-db59-4cb8-bf45-6be2792367f3" selected="true">
+    <debugger version="1">
+      <debugger kind="GDB" isBundled="true" />
+      <env />
+    </debugger>
+    <gdbserver exe="$PROJECT_DIR$/../../sdk/Pico_SDK_v1.5.1/openocd\openocd.exe" args="-f interface\cmsis-dap.cfg -f target\rp2040.cfg -s &quot;D:/sdk/Pico_SDK_v1.5.1/openocd/scripts&quot; -c &quot;adapter speed 4000&quot;">
+      <env script="" />
+    </gdbserver>
+    <console port="4444" />
+    <target reset-command="monitor reset halt" reset-after="false" />
+    <connection extended-remote="false" remote-string="tcp::3333" custom-script="echo Connecting to target...\n&#10;$GDBTargetCommand$&#10;echo Connected to target!\n" warmup-ms="1000" />
+  </generic-debug-target>
+</component>
